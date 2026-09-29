@@ -1,0 +1,58 @@
+{
+  "_about": "Setup merges the blocks the user chooses into .claude/settings.json. Never replace that file or remove hooks already in it. Each top-level key under 'choices' is one hook; merge its 'hooks' entries into the matching event arrays.",
+  "choices": {
+    "danger-scan": {
+      "what": "Blocks catastrophic commands before they run and asks before risky ones.",
+      "needs": "python3",
+      "hooks": {
+        "PreToolUse": [
+          {
+            "matcher": "Bash|Write|Edit",
+            "hooks": [
+              { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/danger_scan.py\" --hook" }
+            ]
+          }
+        ]
+      }
+    },
+    "memory-guard": {
+      "what": "Warns when the memory index grows past its size limit or an entry gets too long.",
+      "needs": "python3",
+      "hooks": {
+        "PostToolUse": [
+          {
+            "matcher": "Edit|Write",
+            "hooks": [
+              { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/memory_guard.py\"" }
+            ]
+          }
+        ]
+      }
+    },
+    "session-check": {
+      "what": "At the start of each session, flags folders without a CLAUDE.md, a big memory index and unprotected credential files.",
+      "needs": "python3",
+      "hooks": {
+        "SessionStart": [
+          {
+            "hooks": [
+              { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session_check.py\" --hook" }
+            ]
+          }
+        ]
+      }
+    },
+    "bell": {
+      "what": "Rings the terminal bell when the agent finishes or needs an answer.",
+      "needs": "macOS or Linux terminal",
+      "hooks": {
+        "Notification": [
+          { "hooks": [ { "type": "command", "command": "printf '\\a' > /dev/tty 2>/dev/null || true" } ] }
+        ],
+        "Stop": [
+          { "hooks": [ { "type": "command", "command": "printf '\\a' > /dev/tty 2>/dev/null || true" } ] }
+        ]
+      }
+    }
+  }
+}
